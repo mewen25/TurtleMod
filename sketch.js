@@ -40,15 +40,16 @@ function setup() {
 }
 
 function mousePressed(mouse) {
+  if (!inGrid(mouseX, mouseY)) return;
   const tile = getMouseTile();
   if (tile) {
     clickHandle();
   }
   press = createVector(
-    Math.floor(mouse.x / cellSize),
-    Math.floor(mouse.y / cellSize)
+    Math.floor(Math.min(mouse.x, grid.x * cellSize) / cellSize),
+    Math.floor(Math.min(mouse.y, grid.y * cellSize) / cellSize)
   );
-  pressTile = getMouseTile();
+  if (toolbar.selected.action === "farmCreate") pressTile = getMouseTile();
 }
 
 function mouseDragged() {
@@ -95,17 +96,23 @@ function keyReleased() {
   if (keyCode === SHIFT) shiftHeld = false;
 }
 
+function inGrid(x, y) {
+  return x < grid.x * cellSize && y < grid.y * cellSize;
+}
+
 function mouseReleased(mouse) {
   if (tempSel) tempSel = null;
   if (tileSelected) tileSelected = null;
   if (pressTile) pressTile = null;
   if (ghostShape) ghostShape = null;
+  if (!inGrid(mouseX, mouseY)) return;
 
   release = createVector(
-    Math.floor(mouse.x / cellSize),
-    Math.floor(mouse.y / cellSize)
+    Math.floor(Math.min(mouse.x, grid.x * cellSize) / cellSize),
+    Math.floor(Math.min(mouse.y, grid.y * cellSize) / cellSize)
   );
   if (
+    press &&
     press.x < grid.x &&
     press.y < grid.y &&
     release.x < grid.x &&
@@ -179,7 +186,10 @@ function createGrid() {
 }
 
 function getMouseTile() {
-  return getTile(mouseX, mouseY);
+  return getTile(
+    Math.min(mouseX, grid.x * cellSize),
+    Math.min(mouseY, grid.y * cellSize)
+  );
 }
 
 function getTile(_x, _y) {
@@ -198,7 +208,7 @@ function buildFarm(start, size) {
     }
     ind += grid.x - size.x;
   }
-  turtles.push(new Turtle(farm[0]?.index, 2, farm));
+  turtles.push(new Turtle(farm[0].index, 2, farm));
   console.log("fag", farm[0].index);
   startTurtle(turtles.length - 1);
 }
@@ -443,10 +453,11 @@ const screenClear = () => {
   press;
   release;
   count = 0;
-  var interval_id = window.setInterval("", 9999);
+  var interval_id = window.setInterval("", 20);
 
   for (var i = 1; i < interval_id; i++) window.clearInterval(i);
-  clear = true;
+  console.log(window);
+  // clear = true;
   tiles.forEach((t) => {
     t.wet = false;
     t.tilled = false;
